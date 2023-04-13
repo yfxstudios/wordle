@@ -1,37 +1,43 @@
 import Head from "next/head";
 import { Roboto_Slab } from "next/font/google";
 import Keyboard from "@/components/Keyboard";
-import { useEffect, useState, useContext } from "react";
-import AppContext from "@/components/AppContext";
+import { useEffect, useState, useRef } from "react";
 
 const RobotoSlab = Roboto_Slab({ subsets: ["latin"] });
 
 export default function Home() {
-  const context = useContext(AppContext);
-  const words = context.wordsArray;
-
   const [key, setKey] = useState<string | null>(null);
 
+  // useRef for pointerLocation
+  const pointerLocation = useRef(0);
+
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      setKey(event.key);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      setKey(e.key);
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [key]);
 
-  // for each item in the words array, set spans with id of letter
-  // and set the innerHTML of the span to the letter
-  for (let i = 0; i < words.length; i++) {
-    for (let j = 0; j < words[i].length; j++) {
-      const letter = document.getElementById(`letter${i}${j}`);
-      if (letter) {
-        letter.innerHTML = words[i][j];
+  useEffect(() => {
+    const letter = document.getElementsByClassName("letter");
+    if (key) {
+      if (letter[pointerLocation.current] && key.length === 1) {
+        letter[pointerLocation.current].textContent = key;
+        pointerLocation.current++;
       }
     }
-  }
+
+    if (key === "Backspace") {
+      if (letter[pointerLocation.current - 1]) {
+        letter[pointerLocation.current - 1].textContent = "";
+        pointerLocation.current--;
+      }
+    }
+  }, [key, pointerLocation]);
 
   return (
     <>
